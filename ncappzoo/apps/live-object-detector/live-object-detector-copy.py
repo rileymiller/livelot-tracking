@@ -103,7 +103,7 @@ def infer_image( graph, img, frame ):
     
     # if a car (7), bus (6), or motorbike (14) 
     if(output_dict['num_detections'] != 0):
-        if(True or output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
+        if(output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
             print('detected a motorized vehical')
             car_tracker.process_frame(0, output_dict, output_dict['num_detections'])
             if(debug):

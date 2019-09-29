@@ -20,5 +20,19 @@ output_if = subprocess.Popen("hostname -I", shell=True, stdout=subprocess.PIPE).
 output_if = output_if.decode("utf-8")
 output_if = output_if.split()[0]
 
-                                                              1,13          Top
+BODY = string.join((
+        "From: %s" % fromaddr,
+        "To: %s" % toaddr,
+        "Subject: Your RasPi just booted",
+        "",
+        output_if,
+#        output_cpu,
+        ), "\r\n")
+
+# send the email
+server = smtplib.SMTP('smtp.gmail.com:587')
+server.starttls()
+server.login(username,password)
+server.sendmail(fromaddr, toaddr, BODY)
+server.quit()
 

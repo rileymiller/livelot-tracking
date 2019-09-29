@@ -14,6 +14,8 @@ import sys
 import numpy
 import ntpath
 import argparse
+from picamera import PiCamera
+from picamera.array import PiRGBArray
 
 import mvnc.mvncapi as mvnc
 
@@ -101,28 +103,28 @@ def infer_image( graph, img, frame ):
     
     # if a car (7), bus (6), or motorbike (14) 
     if(output_dict['num_detections'] != 0):
-        if(output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
+        if(True or output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
             print('detected a motorized vehical')
             car_tracker.process_frame(0, output_dict, output_dict['num_detections'])
-            
-            # Draw bounding boxes around valid detections 
-            #(y1, x1) = output_dict.get('detection_boxes_0')
-            #(y2, x2) = output_dict.get('detection_boxes_1')
+            if(debug):
+                for i in range(0, output_dict['num_detections']):
+                    # Draw bounding boxes around valid detections 
+                    (y1, x1) = output_dict.get('detection_boxes_{}'.format(i))[0]
+                    (y2, x2) = output_dict.get('detection_boxes_{}'.format(i))[1]
 
-            # Prep string to overlay on the image
-            #display_str = ( 
-               # labels[output_dict.get('detection_classes_0')]
-                #+ ": "
-                #+ str( output_dict.get('detection_scores_1' ) )
-                #+ "%" )
+                    # Prep string to overlay on the image
+                    display_str = (labels[output_dict.get('detection_classes_0')]
+                                    + ": "
+                                    + str( output_dict.get('detection_scores_0' ) )
+                                    + "%" )
 
-            #frame = visualize_output.draw_bounding_box( 
-               #        y1, x1, y2, x2, 
-                 #     frame,
-                    #   thickness=4,
-                       #color=(255, 255, 0),
-                       #display_str=display_str )
-            #print( '\n' )
+                    frame = visualize_output.draw_bounding_box( 
+                            y1, x1, y2, x2, 
+                            frame,
+                            thickness=4,
+                            color=(255, 255, 0),
+                            display_str=display_str )
+                 #print( '\n' )
    
    
     #for i in range( 0, output_dict['num_detections'] ):
@@ -135,7 +137,7 @@ def infer_image( graph, img, frame ):
         
 
     # If a display is available, show the image on which inference was performed
-    if 'DISPLAY' in os.environ:
+    if debug == True and 'DISPLAY' in os.environ:
         cv2.imshow( 'NCS live inference', frame )
 
 # ---- Step 5: Unload the graph and close the device -------------------------
@@ -143,7 +145,7 @@ def infer_image( graph, img, frame ):
 def close_ncs_device( device, graph ):
     graph.DeallocateGraph()
     device.CloseDevice()
-    camera.release()
+    camera.close()
     cv2.destroyAllWindows()
 
 # ---- Main function (entry point for this script ) --------------------------
@@ -154,13 +156,12 @@ def main():
     graph = load_graph( device )
 
     # Main loop: Capture live stream & send frames to NCS
-    while( True ):
-        ret, frame = camera.read()
-        img = pre_process_image( frame )
-        infer_image( graph, img, frame )
-
-        # Display the frame for 5ms, and close the window so that the next
-        # frame can be displayed. Close the window if 'q' or 'Q' is pressed.
+    for frame in camera.capture_continuous(rawCapture, format="bgr"):
+        camImg = frame.array
+        img = pre_process_image(camImg)
+        infer_image(graph, img, camImg)
+        rawCapture.truncate()
+        rawCapture.seek(0)
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             break
 
@@ -205,15 +206,18 @@ if __name__ == '__main__':
                          default="bgr",
                          help="RGB vs BGR color sequence. This is network dependent." )
 
+    parser.add_argument( '-d', '--debug', type=bool,
+                         nargs='?',
+                         const=True, default=False,
+                         help="RGB vs BGR color sequence. This is network dependent." )
     ARGS = parser.parse_args()
 
+    debug = ARGS.debug
     # Create a VideoCapture object
-    camera = cv2.VideoCapture( ARGS.video )
-
+    camera = PiCamera()
     # Set camera resolution
-    camera.set( cv2.CAP_PROP_FRAME_WIDTH, 620 )
-    camera.set( cv2.CAP_PROP_FRAME_HEIGHT, 480 )
-
+    camera.resolution = (640,480)
+    rawCapture = PiRGBArray(camera, size=(640,480))
     # Load the labels file
     labels =[ line.rstrip('\n') for line in
               open( ARGS.labels ) if line != 'classes\n']

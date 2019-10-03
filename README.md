@@ -4,14 +4,16 @@
 ``` 
     git clone https://www.raspberrypi.org/downloads/raspberry-pi-desktop/
 ```
-2. Enable Raspberry Pi for ssh if not already enabled:
+2. Enable Raspberry Pi for ssh if not already enabled and enable Pi Camera:
     - Launch `Raspberry Pi Configuration` from the `Preferences` menu
     - Navigate to the `Interfaces` tab
     - Select `Enabled` next to `SSH`
+    - Select `Enabled` next to `Camera`
     - Click `OK`
-3. Place `pyfind.py` under `/home/pi/` (TODO write `install.sh` script) and change privileges running:
+
+3. Place `pifind.py` under `/home/pi/` (TODO write `install.sh` script) and change privileges running:
 ```
-    chmod 777 pyfind.py
+    chmod 777 pifind.py
 ``` 
 then edit `/etc/rc.local` and add two lines in the file:
     ```
@@ -35,11 +37,11 @@ then edit `/etc/rc.local` and add two lines in the file:
 7. Install OpenCV and additional dependencies for RPi:
 ```
     sudo apt-get install python-opencv
-    sudo pip3 install opencv-python==3.4.3
+    sudo pip3 install opencv-python==3.4.3.18
     sudo apt-get install libjasper-dev
     sudo apt-get install libqtgui4
     sudo apt-get install libqt4-test
-    pip install boto3
+    sudo pip install boto3
 ```
 8. Navigate and run script to detect cars:
 ```

@@ -29,4 +29,6 @@ https://www.bilibili.com/video/av23500163/
 
 **use this one for better docs:** https://github.com/Qidian213/deep_sort_yolov3
 
+**use this for docs on yolo/keras & tinyYOLO:** https://github.com/qqwweee/keras-yolo3
+
 

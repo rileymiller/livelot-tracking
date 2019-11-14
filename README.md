@@ -23,3 +23,6 @@ Here is the link to the researchers open sourced deep sort research: https://git
 
 The big challenge here is to create a way to do real-time deepsort tracking using a YOLO model for the input layer locally on a NCS connected to an RPi. Lol we're gonna be rich af if we figure this out.
 
+
+### Link to demo video 😳
+https://www.bilibili.com/video/av23500163/

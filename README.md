@@ -26,3 +26,7 @@ The big challenge here is to create a way to do real-time deepsort tracking usin
 
 ### Link to demo video 😳
 https://www.bilibili.com/video/av23500163/
+
+**use this one for better docs:** https://github.com/Qidian213/deep_sort_yolov3
+
+

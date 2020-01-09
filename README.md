@@ -41,7 +41,7 @@ then edit `/etc/rc.local` and add two lines in the file:
     sudo apt-get install libjasper-dev
     sudo apt-get install libqtgui4
     sudo apt-get install libqt4-test
-    sudo pip install boto3
+    sudo pip3 install boto3
 ```
 8. Navigate and run script to detect cars:
 ```

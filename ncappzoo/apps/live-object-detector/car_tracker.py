@@ -64,15 +64,15 @@ def updateCars(comingIn, comingOut, lotname):
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
-    cx = box_points[0] + w / 2
-    cy = box_points[1] + h / 2
+    cx = box_points[0][0] + w / 2
+    cy = box_points[0][1] + h / 2
     return cx, cy
 
 
 def get_width_height(box_points):
     # box_points is in format x1,y1,x2,y2
-    w = abs(box_points[2] - box_points[0])
-    h = abs(box_points[3] - box_points[1])
+    w = abs(box_points[1][0] - box_points[0][0])
+    h = abs(box_points[1][1] - box_points[0][1])
     return w, h
 
 
@@ -106,11 +106,11 @@ class CarTracker:
 
         # Get the location of every object in this frame
         this_frame_objects = []
-        for obj in output_array['detection_boxes_0']:
+        for i in range(0, output_count):
+            obj = output_array.get('detection_boxes_{}'.format(i))
             this_frame_objects.append(obj)
-
-        # When we have a sufficient number of frames, identify the objects in them
         self._tracked_frames.append(this_frame_objects)
+        print(len(self._tracked_frames))
         if len(self._tracked_frames) == self._num_of_frames_to_track:
             self.identify_objects()
             self._tracked_frames = []
@@ -160,22 +160,23 @@ class CarTracker:
             x, y = v
             m = math.sqrt(x**2 + y**2)
             print(m)
-            if m > 500:
+            #m is threshold for determining in vs out 500 was original
+            if m > 50:
                 if y > 0:
                     self._num_cars_out += 1
-                    updateCars(False, True, "StudentCenter")
+                    #updateCars(False, True, "StudentCenter")
                     going_out.append(v)
                 else:
                     self._num_cars_in += 1
-                    updateCars(True, False, "StudentCenter")
+                    #updateCars(True, False, "StudentCenter")
                     coming_in.append(v)
 
         print("-" * 80)
-#        print(f'Cars coming in: {len(coming_in)}')
-#        print(f'Cars going out: {len(going_out)}')
-#        print(f'Total cars in: {self._num_cars_in}')
-#        print(f'Total cars out: {self._num_cars_out}')
-        # print('OBJECTS THROUGH FRAMES')
-        # for i, locations in enumerate(object_to_frames):
-        #    print(f'Object {i}: {locations}')
+        print(f'Cars coming in: {len(coming_in)}')
+        print(f'Cars going out: {len(going_out)}')
+        print(f'Total cars in: {self._num_cars_in}')
+        print(f'Total cars out: {self._num_cars_out}')
+        print('OBJECTS THROUGH FRAMES')
+        for i, locations in enumerate(object_to_frames):
+            print(f'Object {i}: {locations}')
         print("-" * 80)

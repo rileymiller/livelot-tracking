@@ -64,15 +64,15 @@ def updateCars(comingIn, comingOut, lotname):
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
-    cx = box_points[0][0] + w / 2
-    cy = box_points[0][1] + h / 2
+    cx = box_points[0][1] + w / 2
+    cy = box_points[0][0] + h / 2
     return cx, cy
 
 
 def get_width_height(box_points):
-    # box_points is in format x1,y1,x2,y2
-    w = abs(box_points[1][0] - box_points[0][0])
-    h = abs(box_points[1][1] - box_points[0][1])
+    # box_points is in format y1,x1,y2,x2  
+    h = abs(box_points[1][0] - box_points[0][0])
+    w = abs(box_points[1][1] - box_points[0][1])
     return w, h
 
 
@@ -153,18 +153,17 @@ class CarTracker:
         #will need to figure out good threshold value for cars
         if dist <= self._dist_thresh:
             center = calc_center(obj)
-            new_pos_val = self.test_point(center[1], center[0])
+            new_pos_val = self.test_point(center[0], center[1])
             old_pos_val = self._memory_buffer[index][1]
-            #print("NEW", new_pos_val, "OLD", old_pos_val)
+            self._memory_buffer[index][0] = obj
+            self._memory_buffer[index][1] = new_pos_val
+            self._memory_buffer[index][2] = 1
             if new_pos_val == old_pos_val:
                 print("NO CHANGE")
             elif new_pos_val == 1 and old_pos_val == -1:
                 print("CAR ENTERED")
             else:
                 print("CAR EXITED")
-            self._memory_buffer[index][0] = obj
-            self._memory_buffer[index][1] = new_pos_val
-            self._memory_buffer[index][2] = 1
 
     def process_frame(self, frame_number, output_array, output_count):
         #print('I AM IN PROCESS FRAME')
@@ -179,19 +178,19 @@ class CarTracker:
         for i in range(0, output_count):
             obj = output_array.get('detection_boxes_{}'.format(i))
             if self.is_obj_in_col(obj):
-                if not self._memory_buffer:
+                closest_obj, dist, index = self.find_object_in_frame(obj, self._memory_buffer)
+                if closest_obj == None:
                     center = calc_center(obj)
-                    pos_val = self.test_point(center[1], center[0])
+                    pos_val = self.test_point(center[0], center[1])
                     temp_arr = [obj, pos_val, 1]
                     self._memory_buffer.append(temp_arr)
                 else:
-                    #print("UPDATE BUFFER")
                     self.update_buffer(obj)
-        for i in range(len(self._memory_buffer) - 1, 0, -1):
-            print(i, self._memory_buffer)
+        for i in range(len(self._memory_buffer) - 1, -1, -1):
             if self._memory_buffer[i][2] == 0:
                 self._memory_buffer.remove(self._memory_buffer[i])
-        for i in range(0, len(self._memory_buffer) - 1):
+        for i in range(0, len(self._memory_buffer)):
+            #print("RESET")
             self._memory_buffer[i][2] = 0
 
     def find_object_in_frame(self, obj1, objs_in_frame):
@@ -208,7 +207,7 @@ class CarTracker:
             )
 
             # TODO there should probably be some sort of thresholding done here
-            if dist < closest_obj_dist:
+            if dist < closest_obj_dist and objs_in_frame[i][2] != 1:
                 closest_obj = obj2
                 closest_obj_dist = dist
                 index = i

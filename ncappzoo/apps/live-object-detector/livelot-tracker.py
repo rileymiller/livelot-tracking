@@ -222,8 +222,8 @@ if __name__ == '__main__':
     # Create a VideoCapture object
     camera = PiCamera()
     # Set camera resolution
-    camera.resolution = (1280, 720)#(640,480)
-    rawCapture = PiRGBArray(camera, size=(1280, 720))
+    camera.resolution = (1280,720)#(1280, 720)#(640,480)
+    rawCapture = PiRGBArray(camera, size=(1280,720))
     # Load the labels file
     labels =[ line.rstrip('\n') for line in
               open( ARGS.labels ) if line != 'classes\n']

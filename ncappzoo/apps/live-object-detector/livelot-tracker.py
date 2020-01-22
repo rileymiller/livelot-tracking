@@ -17,7 +17,8 @@ import argparse
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 
-import mvnc.mvncapi as mvnc
+from openvino.inference_engine import IENetwork, IECore
+import openvino.inference_engine.ie_api
 
 from utils import visualize_output
 from utils import deserialize_output
@@ -88,26 +89,33 @@ def pre_process_image( frame ):
 
 # ---- Step 4: Read & print inference results from the NCS -------------------
 
-def infer_image( graph, img, frame ):
+def infer_image( img, frame, input_blob, output_blob, exec_net ):
+    cur_request_id = 0
+    exec_net.start_async(request_id=cur_request_id, inputs={input_blob: img})
 
+    if exec_net.requests[cur_request_id].wait(-1) == 0:
+        inference_results = exec_net.requests[cur_request_id].outputs[output_blob]
+        for num, detection_result in enumerate(inference_results[0][0]):
+            print(num, detection_result)
     # Load the image as a half-precision floating point array
-    graph.LoadTensor( img, 'user object' )
+    #graph.LoadTensor( img, 'user object' )
 
     # Get the results from NCS
-    output, userobj = graph.GetResult()
+    #output, userobj = graph.GetResult()
 
     # Get execution time
-    inference_time = graph.GetGraphOption( mvnc.GraphOption.TIME_TAKEN )
+    #inference_time = graph.GetGraphOption( mvnc.GraphOption.TIME_TAKEN )
 
     # Deserialize the output into a python dictionary
-    output_dict = deserialize_output.ssd( 
-                      output, 
-                      CONFIDANCE_THRESHOLD, 
-                      frame.shape )
+    #output_dict = deserialize_output.ssd( 
+    #                  output, 
+    #                  CONFIDANCE_THRESHOLD, 
+    #                  frame.shape )
     #print(output_dict)
     
     # if a car (7), bus (6), or motorbike (14) human (15)
-    if(output_dict['num_detections'] != 0):
+    if False:
+    #if(output_dict['num_detections'] != 0):
         if(output_dict['detection_classes_0'] == 15 or output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
             #print('detected a motorized vehical')
             car_tracker.process_frame(0, output_dict, output_dict['num_detections'])
@@ -157,15 +165,26 @@ def close_ncs_device( device, graph ):
 # ---- Main function (entry point for this script ) --------------------------
 
 def main():
-
-    device = open_ncs_device()
-    graph = load_graph( device )
-
+    ir = './mobilenet-ssd.xml'
+    ie = IECore()
+    net = IENetwork(model = ir, weights = ir[:-3] + 'bin')
+    exec_net = ie.load_network(network = net, device_name = 'MYRIAD')
+    input_blob = next(iter(net.inputs))
+    output_blob = next(iter(net.outputs))
+    input_shape = net.inputs[input_blob].shape
+    output_shape = net.outputs[output_blob].shape
+    n, c, h, w = input_shape
+    x, y, detections_count, detections_size = output_shape
     # Main loop: Capture live stream & send frames to NCS
     for frame in camera.capture_continuous(rawCapture, format="bgr"):
+        frameImg = frame.array
         camImg = frame.array
-        img = pre_process_image(camImg)
-        infer_image(graph, img, camImg)
+        camImg = cv2.resize(camImg, (w,h))
+        camImg = numpy.transpose(camImg, (2,0,1))
+        camImg = camImg.reshape((n, c, h, w))
+        #img = pre_process_image(camImg)
+        img = camImg
+        infer_image(img, frameImg, input_blob, output_blob, exec_net)
         rawCapture.truncate()
         rawCapture.seek(0)
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):

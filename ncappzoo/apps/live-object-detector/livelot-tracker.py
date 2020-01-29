@@ -35,6 +35,11 @@ camera               = None
 # Initialize CarTracker
 car_tracker = CarTracker()
 
+line_x1 = -1
+line_x2 = -1
+line_y1 = -1
+line_y2 = -1
+
 # ---- Step 1: Open the enumerated device and get a handle to it -------------
 
 def open_ncs_device():
@@ -99,12 +104,12 @@ def infer_image( graph, img, frame ):
                       output, 
                       CONFIDANCE_THRESHOLD, 
                       frame.shape )
-    print(output_dict)
+    #print(output_dict)
     
-    # if a car (7), bus (6), or motorbike (14) 
+    # if a car (7), bus (6), or motorbike (14) human (15)
     if(output_dict['num_detections'] != 0):
-        if(True or output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
-            print('detected a motorized vehical')
+        if(output_dict['detection_classes_0'] == 15 or output_dict['detection_classes_0'] == 7 or output_dict['detection_classes_0'] == 6 or output_dict['detection_classes_0'] == 14):
+            #print('detected a motorized vehical')
             car_tracker.process_frame(0, output_dict, output_dict['num_detections'])
             if(debug):
                 for i in range(0, output_dict['num_detections']):
@@ -138,6 +143,7 @@ def infer_image( graph, img, frame ):
 
     # If a display is available, show the image on which inference was performed
     if debug == True and 'DISPLAY' in os.environ:
+        cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 10)
         cv2.imshow( 'NCS live inference', frame )
 
 # ---- Step 5: Unload the graph and close the device -------------------------
@@ -216,12 +222,17 @@ if __name__ == '__main__':
     # Create a VideoCapture object
     camera = PiCamera()
     # Set camera resolution
-    camera.resolution = (640,480)
-    rawCapture = PiRGBArray(camera, size=(640,480))
+    camera.resolution = (1280,720)#(1280, 720)#(640,480)
+    rawCapture = PiRGBArray(camera, size=(1280,720))
     # Load the labels file
     labels =[ line.rstrip('\n') for line in
               open( ARGS.labels ) if line != 'classes\n']
-
+    pointFile = open("points.txt", "r")
+    line_x1 = int(pointFile.readline())
+    line_y1 = int(pointFile.readline())
+    line_x2 = int(pointFile.readline())
+    line_y2 = int(pointFile.readline())
+    pointFile.close()
     main()
 
 # ==== End of file ===========================================================

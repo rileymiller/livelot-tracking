@@ -16,7 +16,8 @@ class DecimalEncoder(json.JSONEncoder):
             else:
                 return int(o)
         return super(DecimalEncoder, self).default(o)
-        
+
+#Will update  use later        
 def getNumCars(lotname):
     dynamodb = boto3.resource("dynamodb", aws_access_key_id="AKIAIFYOEWMP7W4EPBHQ", aws_secret_access_key= "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",
          region_name='us-east-2', endpoint_url="https://dynamodb.us-east-2.amazonaws.com")
@@ -37,6 +38,7 @@ def getNumCars(lotname):
         print(json.dumps(numCars, indent=4, cls=DecimalEncoder))
         return numCars
 
+#Will update later
 def updateCars(comingIn, comingOut, lotname):
 
     # get the current number of cars in the lot
@@ -74,21 +76,6 @@ def get_width_height(box_points):
     h = abs(box_points[1][0] - box_points[0][0])
     w = abs(box_points[1][1] - box_points[0][1])
     return w, h
-
-
-def calc_area(box_points):
-    w, h = get_width_height(box_points)
-    return w * h
-
-
-def get_vector(p1, p2):
-    x1, y1 = p1
-    x2, y2 = p2
-
-    dx = x2 - x1
-    dy = y2 - y1
-    return (dx, dy)
-
 
 class CarTracker:
     def __init__(self):
@@ -165,18 +152,11 @@ class CarTracker:
             else:
                 print("CAR EXITED")
 
-    def process_frame(self, frame_number, output_array, output_count):
-        #print('I AM IN PROCESS FRAME')
-        #print("FOR FRAME ", frame_number)
-        #print("Output for each object : ", output_array)
-        #print("Output count for unique objects : ", output_count)
-        #print("------------END OF A FRAME --------------")
-
-
+    def process_frame(self, output_array):
         # Get the location of every object in this frame
-        this_frame_objects = []
-        for i in range(0, output_count):
-            obj = output_array.get('detection_boxes_{}'.format(i))
+        this_frame_objects =[]
+        for obj in output_array:
+            obj = obj[0]
             if self.is_obj_in_col(obj):
                 closest_obj, dist, index = self.find_object_in_frame(obj, self._memory_buffer)
                 if closest_obj == None:
@@ -190,7 +170,6 @@ class CarTracker:
             if self._memory_buffer[i][2] == 0:
                 self._memory_buffer.remove(self._memory_buffer[i])
         for i in range(0, len(self._memory_buffer)):
-            #print("RESET")
             self._memory_buffer[i][2] = 0
 
     def find_object_in_frame(self, obj1, objs_in_frame):
@@ -214,48 +193,3 @@ class CarTracker:
 
         return closest_obj, closest_obj_dist, index
 
-    def identify_objects(self):
-        frame0 = self._tracked_frames.pop()
-        object_to_frames = []
-
-        for i, obj in enumerate(frame0):
-            for frame in self._tracked_frames:
-                closest_obj = self.find_object_in_frame(obj, frame)
-                try:
-                    object_to_frames[i].append(closest_obj)
-                except IndexError:
-                    object_to_frames.append([closest_obj])
-
-        # Get unit vectors
-        vectors = [
-            get_vector(calc_center(path[0]), calc_center(path[-1]))
-            for path in object_to_frames
-        ]
-
-        # Find cars coming in/going out
-        coming_in = []
-        going_out = []
-        for v in vectors:
-            x, y = v
-            m = math.sqrt(x**2 + y**2)
-            print(m)
-            #m is threshold for determining in vs out 500 was original
-            if m > 50:
-                if y > 0:
-                    self._num_cars_out += 1
-                    #updateCars(False, True, "StudentCenter")
-                    going_out.append(v)
-                else:
-                    self._num_cars_in += 1
-                    #updateCars(True, False, "StudentCenter")
-                    coming_in.append(v)
-
-        print("-" * 80)
-        print(f'Cars coming in: {len(coming_in)}')
-        print(f'Cars going out: {len(going_out)}')
-        print(f'Total cars in: {self._num_cars_in}')
-        print(f'Total cars out: {self._num_cars_out}')
-        print('OBJECTS THROUGH FRAMES')
-        for i, locations in enumerate(object_to_frames):
-            print(f'Object {i}: {locations}')
-        print("-" * 80)

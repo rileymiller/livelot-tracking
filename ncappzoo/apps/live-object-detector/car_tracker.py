@@ -190,6 +190,6 @@ class CarTracker:
                 closest_obj = obj2
                 closest_obj_dist = dist
                 index = i
-
+        
         return closest_obj, closest_obj_dist, index
 

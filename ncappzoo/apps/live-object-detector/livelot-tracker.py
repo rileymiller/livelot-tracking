@@ -40,6 +40,8 @@ line_x1 = -1
 line_x2 = -1
 line_y1 = -1
 line_y2 = -1
+image_width = 1280
+image_height = 720
 
 # ---- Step 1: Open the enumerated device and get a handle to it -------------
 
@@ -92,27 +94,37 @@ def pre_process_image( frame ):
 def infer_image( img, frame, input_blob, output_blob, exec_net ):
     cur_request_id = 0
     exec_net.start_async(request_id=cur_request_id, inputs={input_blob: img})
-
+    num_detections = 0
+    obj_list = []
     if exec_net.requests[cur_request_id].wait(-1) == 0:
         inference_results = exec_net.requests[cur_request_id].outputs[output_blob]
         for num, detection_result in enumerate(inference_results[0][0]):
-            print(num, detection_result)
-    # Load the image as a half-precision floating point array
-    #graph.LoadTensor( img, 'user object' )
+            if detection_result[1] in [7, 6, 14, 15] and detection_result[2] > 0.5:
+                x1 = int(detection_result[3] * image_width)
+                y1 = int(detection_result[4] * image_height)
+                x2 = int(detection_result[5] * image_width)
+                y2 = int(detection_result[6] * image_height)
+                #[bounding box, class, confidence]
+                obj = [[(y1, x1), (y2, x2)], detection_result[1], detection_result[2]]
+                num_detections = num_detections + 1
+                obj_list.append(obj)
+    if (debug):
+        for obj in obj_list:
+            (y1, x1) = obj[0][0]
+            (y2, x2) = obj[0][1]
+            display_str = (str(obj[1])
+                            + ": "
+                            + str( obj[2] )
+                            + "%" )
 
-    # Get the results from NCS
-    #output, userobj = graph.GetResult()
+            frame = visualize_output.draw_bounding_box( 
+                    y1, x1, y2, x2, 
+                    frame,
+                    thickness=4,
+                    color=(255, 255, 0),
+                    display_str=display_str )
 
-    # Get execution time
-    #inference_time = graph.GetGraphOption( mvnc.GraphOption.TIME_TAKEN )
 
-    # Deserialize the output into a python dictionary
-    #output_dict = deserialize_output.ssd( 
-    #                  output, 
-    #                  CONFIDANCE_THRESHOLD, 
-    #                  frame.shape )
-    #print(output_dict)
-    
     # if a car (7), bus (6), or motorbike (14) human (15)
     if False:
     #if(output_dict['num_detections'] != 0):

@@ -1,68 +1,18 @@
-from __future__ import print_function # Python 2/3 compatibility
 import math
-import boto3
-import json
-import decimal
-from boto3.dynamodb.conditions import Key, Attr
-from botocore.exceptions import ClientError
-
-
-# Helper class to convert a DynamoDB item to JSON.
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            if o % 1 > 0:
-                return float(o)
-            else:
-                return int(o)
-        return super(DecimalEncoder, self).default(o)
+import requests
+from pprint import pprint
 
 #Will update  use later        
 def getNumCars(lotname):
-    dynamodb = boto3.resource("dynamodb", aws_access_key_id="AKIAIFYOEWMP7W4EPBHQ", aws_secret_access_key= "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",
-         region_name='us-east-2', endpoint_url="https://dynamodb.us-east-2.amazonaws.com")
+    return
 
-    table = dynamodb.Table('livelot')
-
-    try:
-        response = table.get_item(
-            Key={
-                'lotname': lotname
-            }
-        )
-    except ClientError as e:
-        print(e.response['Error']['Message'])
+def updateCars(val, lotId):
+    if val == 1:
+        response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
     else:
-        numCars = response["Item"]['numcars']
-        print("GetItem succeeded:")
-        print(json.dumps(numCars, indent=4, cls=DecimalEncoder))
-        return numCars
+        response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
 
-#Will update later
-def updateCars(comingIn, comingOut, lotname):
-
-    # get the current number of cars in the lot
-    currNumCars = getNumCars(lotname)
-    if(comingIn):
-        currNumCars += 1
-    elif(comingOut):
-        currNumCars += 1
-
-    dynamodb = boto3.resource("dynamodb", aws_access_key_id="AKIAIFYOEWMP7W4EPBHQ", aws_secret_access_key= "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",
-         region_name='us-east-2', endpoint_url="https://dynamodb.us-east-2.amazonaws.com")
-
-    table = dynamodb.Table('livelot')
-
-    response = table.update_item(
-        Key={
-            'lotname': "StudentCenter"
-        },
-        UpdateExpression="set numcars = :r",
-        ExpressionAttributeValues={
-            ':r': currNumCars
-        },
-        ReturnValues="UPDATED_NEW"
-    )
+    pprint(response.json())
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
@@ -99,25 +49,23 @@ class CarTracker:
 
     # -1 = outside 1 = inside
     def test_point(self, x, y):
-        #print("COORDS", x, y)
-        #print(((y - self._y1 + self._m * self._x1) / self._m))
         if not self._lineVertical:
             if x <= max(self._x2, self._x1) and x >= min (self._x1, self._x2):
                 if y > (self._m * (x - self._x1) + self._y1):
-                    #print("below horiz")
+                    #below horizontal line
                     return 1
                 else:
-                    #print("above horiz")
+                    #above horizontal line
                     return -1
             else:
-                print("not in col horiz")
+                return
         else:
             if y <= max(self._y2, self._y1) and y >= min(self._y1, self._y2):
                 if x > ((y - self._y1 + self._m * self._x1) / self._m):
-                    #print("right vert")
+                    #right of vertical line
                     return 1
                 else:
-                    #print("left vert")
+                    #left of vertical line 
                     return -1
             else:
                 print("not in col vert")
@@ -149,8 +97,10 @@ class CarTracker:
                 print("NO CHANGE")
             elif new_pos_val == 1 and old_pos_val == -1:
                 print("CAR ENTERED")
+                updateCars(1, '5db10d68660f730017cddd1e')
             else:
                 print("CAR EXITED")
+                updateCars(-1, '5db10d68660f730017cddd1e')
 
     def process_frame(self, output_array):
         # Get the location of every object in this frame

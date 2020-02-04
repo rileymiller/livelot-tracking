@@ -127,3 +127,6 @@ dmypy.json
 
 #Line point file
 points.txt
+
+#Log files
+*.log

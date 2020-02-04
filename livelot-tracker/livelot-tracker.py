@@ -8,6 +8,18 @@
 # Detect objects on a LIVE camera feed using
 # Intel® Movidius™ Neural Compute Stick (NCS)
 
+import logging
+from datetime import datetime
+
+#Set up logger
+now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
+logger = logging.getLogger('livelot-tracker')
+logging.basicConfig(level=logging.INFO)
+fileHandler = logging.FileHandler('logs/tracker' + now)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fileHandler.setFormatter(formatter)
+logger.addHandler(fileHandler)
+
 import os
 import cv2
 import numpy
@@ -86,16 +98,20 @@ def infer_image( img, frame, input_blob, output_blob, exec_net ):
 
 
 def main():
-    ir = './mobilenet-ssd.xml'
-    ie = IECore()
-    net = IENetwork(model = ir, weights = ir[:-3] + 'bin')
-    exec_net = ie.load_network(network = net, device_name = 'MYRIAD')
-    input_blob = next(iter(net.inputs))
-    output_blob = next(iter(net.outputs))
-    input_shape = net.inputs[input_blob].shape
-    output_shape = net.outputs[output_blob].shape
-    n, c, h, w = input_shape
-    x, y, detections_count, detections_size = output_shape
+    try:
+        ir = './mobilenet-ssd.xml'
+        ie = IECore()
+        net = IENetwork(model = ir, weights = ir[:-3] + 'bin')
+        exec_net = ie.load_network(network = net, device_name = 'MYRIAD')
+        input_blob = next(iter(net.inputs))
+        output_blob = next(iter(net.outputs))
+        input_shape = net.inputs[input_blob].shape
+        output_shape = net.outputs[output_blob].shape
+        n, c, h, w = input_shape
+        x, y, detections_count, detections_size = output_shape
+    except Exception as e:
+        logger.error(str(e))
+    logger.info('Model succesfully loaded to NCS')
     # Main loop: Capture live stream & send frames to NCS
     for frame in camera.capture_continuous(rawCapture, format="bgr"):
         frameImg = frame.array
@@ -128,14 +144,22 @@ if __name__ == '__main__':
     ARGS = parser.parse_args()
 
     debug = ARGS.debug
-    camera = PiCamera()
-    camera.resolution = (image_width,image_height)
-    rawCapture = PiRGBArray(camera, size=(image_width, image_height))
-    pointFile = open("points.txt", "r")
+    try:
+        camera = PiCamera()
+        camera.resolution = (image_width,image_height)
+        rawCapture = PiRGBArray(camera, size=(image_width, image_height))
+    except Exception as e:
+        logger.error(str(e))
+    logger.info('Pi Camera initialized')
+    try:
+        pointFile = open("points.txt", "r")
+    except Exception as e:
+        logger.error(str(e))
     line_x1 = int(pointFile.readline())
     line_y1 = int(pointFile.readline())
     line_x2 = int(pointFile.readline())
     line_y2 = int(pointFile.readline())
     pointFile.close()
+    logger.info('Boundary line point data has been loaded')
     main()
 

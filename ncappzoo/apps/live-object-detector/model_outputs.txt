@@ -1,0 +1,8 @@
+new:
+0 [0.         9.         0.85009766 0.73046875 0.44677734 0.99902344
+ 0.9946289 ]
+1 [0.         9.         0.5888672  0.69091797 0.81689453 0.9770508
+ 0.99658203]
+
+old:
+{'num_detections': 2, 'detection_classes_0': 9, 'detection_scores_0': 69, 'detection_boxes_0': [(327, 929), (717, 1279)], 'detection_classes_1': 9, 'detection_scores_1': 67, 'detection_boxes_1': [(598, 862), (712, 1267)]}

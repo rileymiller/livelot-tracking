@@ -1,7 +1,7 @@
 import math
 import requests
 from pprint import pprint
-
+import json
 #Will update  use later        
 def getNumCars(lotname):
     return
@@ -11,8 +11,13 @@ def updateCars(val, lotId):
         response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
     else:
         response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
-
-    pprint(response.json())
+    try:
+        print(response.content)
+        print(response.json())
+    except Exception:
+        print("JSON Error")
+    #print(response)
+    #pprint(response.json())
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)

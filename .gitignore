@@ -130,3 +130,6 @@ points.txt
 
 #Log files
 *.log
+
+#Swap files
+*.swp

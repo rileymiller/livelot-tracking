@@ -10,7 +10,6 @@ def getNumCars(lotname):
     return
 
 def updateCars(val, lotId):
-<<<<<<< HEAD
     try:
         if val == 1:
             response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))

@@ -124,3 +124,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+#Line point file
+points.txt
+
+#Log files
+*.log

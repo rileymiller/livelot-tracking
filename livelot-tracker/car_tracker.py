@@ -30,7 +30,6 @@ def get_width_height(box_points):
 
 class CarTracker:
     def __init__(self):
-        self.loop = asyncio.get_event_loop()
         self._tracked_frames = []
         self._num_of_frames_to_track = 25
         self._num_cars_in = 0
@@ -103,6 +102,7 @@ class CarTracker:
             else:
                 print("CAR EXITED")
                 _thread.start_new_thread(updateCars,(-1, '5db10d68660f730017cddd1e'))
+
 
     def process_frame(self, output_array):
         # Get the location of every object in this frame

@@ -2,6 +2,7 @@ import math
 import requests
 from pprint import pprint
 import json
+import _thread
 #Will update  use later        
 def getNumCars(lotname):
     return
@@ -11,13 +12,8 @@ def updateCars(val, lotId):
         response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
     else:
         response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
-    try:
-        print(response.content)
-        print(response.json())
-    except Exception:
-        print("JSON Error")
-    #print(response)
-    #pprint(response.json())
+    print(response.json())
+    return response
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
@@ -34,6 +30,7 @@ def get_width_height(box_points):
 
 class CarTracker:
     def __init__(self):
+        self.loop = asyncio.get_event_loop()
         self._tracked_frames = []
         self._num_of_frames_to_track = 25
         self._num_cars_in = 0
@@ -102,10 +99,10 @@ class CarTracker:
                 print("NO CHANGE")
             elif new_pos_val == 1 and old_pos_val == -1:
                 print("CAR ENTERED")
-                updateCars(1, '5db10d68660f730017cddd1e')
+                _thread.start_new_thread(updateCars,(1, '5db10d68660f730017cddd1e'))
             else:
                 print("CAR EXITED")
-                updateCars(-1, '5db10d68660f730017cddd1e')
+                _thread.start_new_thread(updateCars,(-1, '5db10d68660f730017cddd1e'))
 
     def process_frame(self, output_array):
         # Get the location of every object in this frame

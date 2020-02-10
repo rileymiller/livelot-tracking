@@ -1,19 +1,29 @@
+import logging
+logger = logging.getLogger('livelot-tracker.car_tracker')
+
 import math
 import requests
 from pprint import pprint
 import json
+
 import _thread
 #Will update  use later        
 def getNumCars(lotname):
     return
 
 def updateCars(val, lotId):
-    if val == 1:
-        response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
-    else:
-        response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
-    print(response.json())
-    return response
+    try:
+        if val == 1:
+            response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
+            logger.info('Car Entered')
+        else:
+            response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
+            logger.info('Car Exit')
+        
+        logger.info(response.json())
+    except Exception as e:
+        logger.error(str(e))
+
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
@@ -30,15 +40,19 @@ def get_width_height(box_points):
 
 class CarTracker:
     def __init__(self):
+        self.logger = logging.getLogger('livelot-tracker.car_tracker.CarTracker')
         self._tracked_frames = []
         self._num_of_frames_to_track = 25
         self._num_cars_in = 0
         self._num_cars_out = 0
-        pointFile = open("points.txt", "r")
-        self._x1 = int(pointFile.readline())
-        self._y1 = int(pointFile.readline())
-        self._x2 = int(pointFile.readline())
-        self._y2 = int(pointFile.readline())
+        try:
+            pointFile = open("points.txt", "r")
+            self._x1 = int(pointFile.readline())
+            self._y1 = int(pointFile.readline())
+            self._x2 = int(pointFile.readline())
+            self._y2 = int(pointFile.readline())
+        except Exception as e:
+            self.logger.error(str(e))
         self._m = (self._y2 - self._y1) / (self._x1 - self._x2)
         pointFile.close()
         self._memory_buffer = []
@@ -47,6 +61,7 @@ class CarTracker:
         self._dist_thresh = 10000
         if angle < 45:
             self._lineVertical = False
+        self.logger.info('CarTracker Initialized')
 
     # -1 = outside 1 = inside
     def test_point(self, x, y):
@@ -69,8 +84,7 @@ class CarTracker:
                     #left of vertical line 
                     return -1
             else:
-                print("not in col vert")
-    
+                return 
     def is_obj_in_col(self, obj):
         x, y = calc_center(obj)
         if not self._lineVertical:
@@ -95,12 +109,11 @@ class CarTracker:
             self._memory_buffer[index][1] = new_pos_val
             self._memory_buffer[index][2] = 1
             if new_pos_val == old_pos_val:
-                print("NO CHANGE")
+                return
             elif new_pos_val == 1 and old_pos_val == -1:
-                print("CAR ENTERED")
+
                 _thread.start_new_thread(updateCars,(1, '5db10d68660f730017cddd1e'))
             else:
-                print("CAR EXITED")
                 _thread.start_new_thread(updateCars,(-1, '5db10d68660f730017cddd1e'))
 
 

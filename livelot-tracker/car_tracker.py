@@ -5,6 +5,8 @@ import math
 import requests
 from pprint import pprint
 import json
+
+import _thread
 #Will update  use later        
 def getNumCars(lotname):
     return
@@ -21,6 +23,7 @@ def updateCars(val, lotId):
         logger.info(response.json())
     except Exception as e:
         logger.error(str(e))
+
 
 def calc_center(box_points):
     w, h = get_width_height(box_points)
@@ -108,9 +111,11 @@ class CarTracker:
             if new_pos_val == old_pos_val:
                 return
             elif new_pos_val == 1 and old_pos_val == -1:
-                updateCars(1, '5db10d68660f730017cddd1e')
+
+                _thread.start_new_thread(updateCars,(1, '5db10d68660f730017cddd1e'))
             else:
-                updateCars(-1, '5db10d68660f730017cddd1e')
+                _thread.start_new_thread(updateCars,(-1, '5db10d68660f730017cddd1e'))
+
 
     def process_frame(self, output_array):
         # Get the location of every object in this frame

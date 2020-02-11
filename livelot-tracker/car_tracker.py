@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger('livelot-tracker.car_tracker')
 
+import configparser
 import math
 import requests
 from pprint import pprint
@@ -41,6 +42,14 @@ def get_width_height(box_points):
 class CarTracker:
     def __init__(self):
         self.logger = logging.getLogger('livelot-tracker.car_tracker.CarTracker')
+        config = configparser.ConfigParser()
+        try:
+            config.read("./LotConfig.ini")
+            self._lotId = config.get('Lot', 'lotId')
+            self._flipBoundary = config.getboolean('Lot','flipBoundary')
+            self.logger.info("Config file read.")
+        except Exception as e:
+            self.logger.error(str(e))
         self._tracked_frames = []
         self._num_of_frames_to_track = 25
         self._num_cars_in = 0
@@ -69,20 +78,20 @@ class CarTracker:
             if x <= max(self._x2, self._x1) and x >= min (self._x1, self._x2):
                 if y > (self._m * (x - self._x1) + self._y1):
                     #below horizontal line
-                    return 1
+                    return 1 if not self._flipBoundary else -1
                 else:
                     #above horizontal line
-                    return -1
+                    return -1 if not self._flipBoundary else 1
             else:
                 return
         else:
             if y <= max(self._y2, self._y1) and y >= min(self._y1, self._y2):
                 if x > ((y - self._y1 + self._m * self._x1) / self._m):
                     #right of vertical line
-                    return 1
+                    return 1 if not self._flipBoundary else -1
                 else:
                     #left of vertical line 
-                    return -1
+                    return -1 if not self._flipBoundary else 1
             else:
                 return 
     def is_obj_in_col(self, obj):
@@ -112,9 +121,9 @@ class CarTracker:
                 return
             elif new_pos_val == 1 and old_pos_val == -1:
 
-                _thread.start_new_thread(updateCars,(1, '5db10d68660f730017cddd1e'))
+                _thread.start_new_thread(updateCars,(1, self._lotId))
             else:
-                _thread.start_new_thread(updateCars,(-1, '5db10d68660f730017cddd1e'))
+                _thread.start_new_thread(updateCars,(-1, self._lotId))
 
 
     def process_frame(self, output_array):

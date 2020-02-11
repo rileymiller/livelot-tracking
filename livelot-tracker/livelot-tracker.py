@@ -10,11 +10,13 @@
 
 import logging
 from datetime import datetime
-
+import os
 #Set up logger
 now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
 logger = logging.getLogger('livelot-tracker')
 logging.basicConfig(level=logging.INFO)
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
 fileHandler = logging.FileHandler('logs/tracker' + now)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fileHandler.setFormatter(formatter)

@@ -23,6 +23,7 @@ fileHandler.setFormatter(formatter)
 logger.addHandler(fileHandler)
 
 import os
+import time
 import cv2
 import numpy
 import argparse
@@ -54,10 +55,11 @@ line_y1 = -1
 line_y2 = -1
 
 #Image Dimensions
-image_width = 1280
-image_height = 720
+image_width = 1280#1640#1280
+image_height = 720#1232#720
 
 def infer_image( img, frame, input_blob, output_blob, exec_net ):
+    detection_start = time.time()
     exec_net.start_async(request_id=0, inputs={input_blob: img})
     num_detections = 0
     obj_list = []
@@ -74,9 +76,13 @@ def infer_image( img, frame, input_blob, output_blob, exec_net ):
                 obj = [[(y1, x1), (y2, x2)], detection_result[1], detection_result[2]]
                 num_detections = num_detections + 1
                 obj_list.append(obj)
-    
-    car_tracker.process_frame(obj_list)
+    if timing:
+        print("Detection time (ms): ", 1000 * (time.time() - detection_start)) 
 
+    car_tracker_start = time.time()
+    car_tracker.process_frame(obj_list)
+    if timing:
+        print("Car Tracker Time (ms): ", 1000 * (time.time() - car_tracker_start)) 
     if (debug):
         for obj in obj_list:
             (y1, x1) = obj[0][0]
@@ -116,6 +122,7 @@ def main():
     logger.info('Model succesfully loaded to NCS')
     # Main loop: Capture live stream & send frames to NCS
     for frame in camera.capture_continuous(rawCapture, format="bgr"):
+        start_time = time.time()
         frameImg = frame.array
         camImg = frame.array
         camImg = cv2.resize(camImg, (w,h))
@@ -127,6 +134,9 @@ def main():
         rawCapture.seek(0)
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             break
+        if timing:
+            print("FPS: ", 1.0 / (time.time() - start_time)) # FPS = 1 / time to process loop
+            print("Total time (ms)", 1000 * (time.time() - start_time))
 
 if __name__ == '__main__':
 
@@ -143,8 +153,13 @@ if __name__ == '__main__':
                          nargs='?',
                          const=True, default=False,
                          help="Shows the image feed with bounding boxes and boundary line." )
+    parser.add_argument( '-t', '--timing', type=bool,
+                         nargs='?',
+                         const=True, default=False,
+                         help="Prints out timing information." )
     ARGS = parser.parse_args()
 
+    timing = ARGS.timing 
     debug = ARGS.debug
     try:
         camera = PiCamera()
@@ -163,5 +178,7 @@ if __name__ == '__main__':
     line_y2 = int(pointFile.readline())
     pointFile.close()
     logger.info('Boundary line point data has been loaded')
-    main()
-
+    try:
+        main()
+    except Exception as e:
+        logger.error(str(e))

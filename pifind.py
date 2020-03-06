@@ -1,38 +1,29 @@
-import smtplib, string, subprocess
-# Script to get IP Address while running a Raspberry Pi headless.
-# pifind.py gets the system parameters you want to know and
-# emails them through gmail to a destination of your choice
+import socketio
+import re
+import uuid
+import configparser
+import subprocess
 
-# INSTALLING pifind
-# Add this line to /etc/rc.local
-#   python /home/pi/pifind.py
-# And place this file, pifind.py in your /home/pi folder, then
-#   sudo chmod 755 /home/pi/pifind.py
+sio = socketio.Client()
+sio.connect('')
 
-# Settings
-#When editing these lines, remove the <>, but not the quotes
-fromaddr = 'livelotminesnodeip@gmail.com'
-toaddr  =  'livelotminesnodeip@gmail.com'
-#Googlemail login details
-username = 'livelotminesnodeip'
-password = 'mineslivelot'
-output_if = subprocess.Popen("hostname -I", shell=True, stdout=subprocess.PIPE).communicate()[0]
-output_if = output_if.decode("utf-8")
-output_if = output_if.split()[0]
+config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
+config.read("./livelot-tracker/LotConfig.ini")
 
-BODY = string.join((
-        "From: %s" % fromaddr,
-        "To: %s" % toaddr,
-        "Subject: Your RasPi just booted",
-        "",
-        output_if,
-#        output_cpu,
-        ), "\r\n")
+cameraID = config.getint('Lot', 'cameraID')
+if cameraID == -1:
+    cameraID = str(uuid.uuid4())
+    config.set('Lot', 'cameraID', cameraID)
+    f = open('./livelot-tracker/LotConfig.ini', 'w')
+    config.write(f)
+    f.close()
 
-# send the email
-server = smtplib.SMTP('smtp.gmail.com:587')
-server.starttls()
-server.login(username,password)
-server.sendmail(fromaddr, toaddr, BODY)
-server.quit()
+ipv4 = subprocess.Popen("hostname -I", shell=True, stdout=subprocess.PIPE).communicate()[0]
+ipv4 = ipv4.decode("utf-8")
+ipv4 = ipv4.split()[0]
 
+ipv6 = subprocess.Popen("dig TXT +short o-o.myaddr.l.google.com @ns1.google.com", shell=True, stdout=subprocess.PIPE).communicate()[0]
+ipv6 = ipv6.decode("utf-8")
+ipv6 = re.findall(r'"([^"]*)"', ipv6)[0]
+
+sio.emit("camera-connection", {"ipv4": ipv4, "ipv6": ipv6, "cameraID": cameraID})

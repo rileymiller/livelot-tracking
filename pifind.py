@@ -5,13 +5,13 @@ import configparser
 import subprocess
 
 sio = socketio.Client()
-sio.connect('')
+sio.connect('https://livelotapi-rm-ip-table-q3tgigl.herokuapp.com/')
 
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read("./livelot-tracker/LotConfig.ini")
 
-cameraID = config.getint('Lot', 'cameraID')
-if cameraID == -1:
+cameraID = config.get('Lot', 'cameraID')
+if cameraID == "-1":
     cameraID = str(uuid.uuid4())
     config.set('Lot', 'cameraID', cameraID)
     f = open('./livelot-tracker/LotConfig.ini', 'w')

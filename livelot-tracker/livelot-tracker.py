@@ -55,8 +55,8 @@ line_y1 = -1
 line_y2 = -1
 
 #Image Dimensions
-image_width = 1280#1640#1280
-image_height = 720#1232#720
+image_width = 1640#1280
+image_height = 922#720
 
 def infer_image( img, frame, input_blob, output_blob, exec_net ):
     detection_start = time.time()
@@ -120,9 +120,12 @@ def main():
     except Exception as e:
         logger.error(str(e))
     logger.info('Model succesfully loaded to NCS')
+    start_time = time.time()
+    frame_count = 0
     # Main loop: Capture live stream & send frames to NCS
-    for frame in camera.capture_continuous(rawCapture, format="bgr"):
-        start_time = time.time()
+    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+        frame_count = frame_count + 1
+        frame_start_time = time.time()
         frameImg = frame.array
         camImg = frame.array
         camImg = cv2.resize(camImg, (w,h))
@@ -130,13 +133,12 @@ def main():
         camImg = camImg.reshape((n, c, h, w))
         img = camImg
         infer_image(img, frameImg, input_blob, output_blob, exec_net)
-        rawCapture.truncate()
-        rawCapture.seek(0)
+        rawCapture.truncate(0)
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             break
         if timing:
-            print("FPS: ", 1.0 / (time.time() - start_time)) # FPS = 1 / time to process loop
-            print("Total time (ms)", 1000 * (time.time() - start_time))
+            print("FPS: ", frame_count / (time.time() - start_time)) # FPS = 1 / time to process loop
+            print("Total time (ms)", 1000 * (time.time() - frame_start_time))
 
 if __name__ == '__main__':
 
@@ -164,6 +166,7 @@ if __name__ == '__main__':
     try:
         camera = PiCamera()
         camera.resolution = (image_width,image_height)
+        camera.framerate = 30
         rawCapture = PiRGBArray(camera, size=(image_width, image_height))
     except Exception as e:
         logger.error(str(e))

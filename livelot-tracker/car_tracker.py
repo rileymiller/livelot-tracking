@@ -117,7 +117,7 @@ class CarTracker:
                 #already updated continue
                 if carObj.updated == True:
                     continue
-                prev_pos = carObj[0]
+                prev_pos = carObj.bounding_box
                 new_pos_center = calc_center(new_pos)
                 prev_pos_center = calc_center(prev_pos)
                 dist = math.hypot(new_pos_center[0] - prev_pos_center[0], new_pos_center[1] - prev_pos_center[1])
@@ -152,12 +152,12 @@ class CarTracker:
             this_frame_cars.append(obj[0])
                    
         for car in output_array:
-            car = obj[0]
+            car = car[0]
             closest_obj, dist, index = self.find_object_in_frame(car, self._memory_buffer)
             if closest_obj == None:
                 center = calc_center(car)
                 pos_val = self.test_point(center[0], center[1])
-                carObj = CarObject(obj, pos_val)
+                carObj = CarObject(car, pos_val)
                 temp_arr = [obj, pos_val, 0,  1, 3]
                 self._memory_buffer.append(carObj)
             else:
@@ -177,7 +177,7 @@ class CarTracker:
         closest_obj_dist = 10000
         index = -1
         for i in range(num_objs_in_frame):
-            obj2 = objs_in_frame[i][0]
+            obj2 = objs_in_frame[i].bounding_box
             obj2_center = calc_center(obj2)
             dist = math.hypot(
                 obj2_center[0] - obj1_center[0], obj2_center[1] - obj1_center[1]

@@ -181,7 +181,8 @@ if __name__ == '__main__':
     line_y2 = int(pointFile.readline())
     pointFile.close()
     logger.info('Boundary line point data has been loaded')
-    try:
-        main()
-    except Exception as e:
-        logger.error(str(e))
+    #try:
+    #    main()
+    #except Exception as e:
+    #    logger.error(str(e))
+    main()

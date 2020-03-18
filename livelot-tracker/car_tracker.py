@@ -115,7 +115,7 @@ class CarTracker:
         for new_pos in this_frame_cars:
             for carObj in self._memory_buffer:
                 #already updated continue
-                if carObj.updated == 1:
+                if carObj.updated == True:
                     continue
                 prev_pos = carObj[0]
                 new_pos_center = calc_center(new_pos)
@@ -131,7 +131,7 @@ class CarTracker:
         new_pos_val = self.test_point(center[0], center[1])
         self._memory_buffer[index].bounding_box = bounding_box
         self._memory_buffer[index].frame_position = new_pos_val
-        self._memory_buffer[index].updated = 1
+        self._memory_buffer[index].updated = True
         self._memory_buffer[index].timeout_counter = 3
             
     def remove_from_buffer(self, index):
@@ -163,12 +163,12 @@ class CarTracker:
             else:
                 self.update_buffer(this_frame_cars)
         for i in range(len(self._memory_buffer) - 1, -1, -1):
-            if self._memory_buffer[i].updated == 0 and self._memory_buffer[i].timeout_counter == 0:
+            if self._memory_buffer[i].updated == False and self._memory_buffer[i].timeout_counter == 0:
                 self.remove_from_buffer(i)
-            elif self._memory_buffer[i].updated == 0:
+            elif self._memory_buffer[i].updated == False:
                 self._memory_buffer[i].timeout_counter = self._memory_buffer[i].timeout_counter - 1
         for i in range(0, len(self._memory_buffer)):
-            self._memory_buffer[i].updated = 0
+            self._memory_buffer[i].updated = False
 
     def find_object_in_frame(self, obj1, objs_in_frame):
         num_objs_in_frame = len(objs_in_frame)
@@ -184,7 +184,7 @@ class CarTracker:
             )
 
             # TODO there should probably be some sort of thresholding done here
-            if dist < closest_obj_dist and objs_in_frame[i].updated != 1:
+            if dist < closest_obj_dist and objs_in_frame[i].updated != True:
                 closest_obj = obj2
                 closest_obj_dist = dist
                 index = i

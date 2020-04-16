@@ -16,7 +16,8 @@ The first approach tried was using the bounding box moving throughout the frame 
 This was the second approach where each frame was processed and the detections were put into a memory buffer and referenced by the next iteration to determine whether or not it had crossed a line drawn in the frame.
 
 General Psuedocode
-`
+
+```
 detections = get_detections()
 if memory_buffer is empty:
     memory_buffer.append(detection)
@@ -32,7 +33,7 @@ for each object in memory_buffer:
 	memory_buffer.remove(object)
     if updated:
 	memory_buffer[object].updated = !updated
-`
+```
 
 Updating the memory buffer consisted of matching the `detection` to the closest object in the memory buffer and testing which side the car is on. If the side changed then a field in the memory buffer was updated so that the api could be called later in the code.
 

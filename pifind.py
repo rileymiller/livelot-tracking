@@ -3,21 +3,19 @@ import re
 import uuid
 import configparser
 import subprocess
-
 sio = socketio.Client()
-sio.connect('https://livelotapi-rm-ip-table-q3tgigl.herokuapp.com/')
+sio.connect('https://livelotapi-rm-ip-table-xlknr1r.herokuapp.com/')
 
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
-config.read("./livelot-tracker/LotConfig.ini")
+config.read("/home/pi/livelot-tracking/livelot-tracker/LotConfig.ini")
 
 cameraID = config.get('Lot', 'cameraID')
 if cameraID == "-1":
     cameraID = str(uuid.uuid4())
     config.set('Lot', 'cameraID', cameraID)
-    f = open('./livelot-tracker/LotConfig.ini', 'w')
+    f = open('/home/pi/livelot-tracking/livelot-tracker/LotConfig.ini', 'w')
     config.write(f)
     f.close()
-
 ipv4 = subprocess.Popen("hostname -I", shell=True, stdout=subprocess.PIPE).communicate()[0]
 ipv4 = ipv4.decode("utf-8")
 ipv4 = ipv4.split()[0]

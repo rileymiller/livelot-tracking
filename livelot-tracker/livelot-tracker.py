@@ -33,6 +33,7 @@ import openvino.inference_engine.ie_api
 
 from utils import visualize_output
 from car_tracker import CarTracker
+from PiVideoStream import PiVideoStream
 
 # Detection threshold: Minimum confidance to tag as valid detection
 CONFIDANCE_THRESHOLD = 0.60 # 60% confidant
@@ -176,6 +177,13 @@ def main():
         except Exception as e:
             logger.error(str(e))
         logger.info('Model succesfully loaded to NCS')
+    #try:
+        #camera = PiCamera()
+        #camera.resolution = (image_width,image_height)
+        #camera.framerate = 30
+        #rawCapture = PiRGBArray(camera, size=(image_width, image_height))
+    #except Exception as e:
+    #    logger.error(str(e))
     if tpu:
         labels = load_labels('./coco_labels.txt')
         interpreter = Interpreter('./ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite',
@@ -186,48 +194,45 @@ def main():
     start_time = time.time()
     frame_count = 0
     if tpu:
-        with PiCamera(resolution=(image_width, image_height), framerate=30) as camera:
-            camera.start_preview()
-            stream = io.BytesIO()
-            for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
-                frame_count = frame_count + 1
-                frame_start_time = time.time()
-                stream.seek(0)
-                frame = Image.open(stream).convert('RGB')
-                frame = cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR)
-                image = Image.open(stream).convert('RGB').resize((width, height),
-                                                     Image.ANTIALIAS)
-                detection_start = time.time()
-                results = detect_objects(interpreter, image, 0.5)#classify_image(interpreter, image)
-                if timing:
-                    print("Detection time (ms): ", 1000 * (time.time() - detection_start)) 
+        #for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+        vs = PiVideoStream(resolution=(image_width, image_height),framerate=60).start()
+        time.sleep(2.0)
+        while True:    
+            frame_count = frame_count + 1
+            frame_start_time = time.time()
+            img = vs.read()
+            displayImg = img
+            frameImg = img
+            frameImg = cv2.resize(frameImg, (width,height))
+            detection_start = time.time()
+            results = detect_objects(interpreter, frameImg, 0.5)#classify_image(interpreter, image)
+            if timing:
+                print("Detection time (ms): ", 1000 * (time.time() - detection_start)) 
                 
-                car_bboxs = []
-                for obj in results:
-                    # 0 - person 2 - car 3 - motorcycle 5 - bus 7 - truck
-                    if obj["class_id"] in [0,2,3,5,7] and obj["score"] > 0.5:
-                        x1 = int(obj["bounding_box"][1] * image_width)
-                        y1 = int(obj["bounding_box"][0] * image_height)
-                        x2 = int(obj["bounding_box"][3] * image_width)
-                        y2 = int(obj["bounding_box"][2] * image_height)
-                        bbox_obj = [[(y1, x1),(y2, x2)], obj["class_id"], obj["score"]]
-                        #bbox_obj.append(obj["bounding_box"])
-                        car_bboxs.append(bbox_obj)
+            car_bboxs = []
+            for obj in results:
+                # 0 - person 2 - car 3 - motorcycle 5 - bus 7 - truck
+                if obj["class_id"] in [0,2,3,5,7] and obj["score"] > 0.5:
+                    x1 = int(obj["bounding_box"][1] * image_width)
+                    y1 = int(obj["bounding_box"][0] * image_height)
+                    x2 = int(obj["bounding_box"][3] * image_width)
+                    y2 = int(obj["bounding_box"][2] * image_height)
+                    bbox_obj = [[(y1, x1),(y2, x2)], obj["class_id"], obj["score"]]
+                    car_bboxs.append(bbox_obj)
 
-                if(debug):
-                    show_inference(car_bboxs, frame)
+            if(debug):
+                show_inference(car_bboxs, displayImg)
 
-                if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
-                    break
-                car_tracker.process_frame(car_bboxs)
-                elapsed_ms = (time.time() - start_time) * 1000
-                #label_id, prob = results[0]
-                stream.seek(0)
-                stream.truncate(0)
+            if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
+                vs.stop()
+                break
+            car_tracker.process_frame(car_bboxs)
+            elapsed_ms = (time.time() - start_time) * 1000
+            #rawCapture.truncate(0)
 
-                if timing:
-                    print("FPS: ", frame_count / (time.time() - start_time)) # FPS = 1 / time to process loop
-                    print("Total time (ms)", 1000 * (time.time() - frame_start_time))
+            if timing:
+                print("FPS: ", frame_count / (time.time() - start_time)) # FPS = 1 / time to process loop
+                print("Total time (ms)", 1000 * (time.time() - frame_start_time))
     if not tpu:
         try:
             camera = PiCamera()

@@ -3,8 +3,8 @@ logger = logging.getLogger('livelot-tracker.car_tracker')
 
 import configparser
 import math
-import requests
 import json
+from request_interface import carIn, carOut
 
 import _thread
 #Will update  use later        
@@ -14,13 +14,9 @@ def getNumCars(lotname):
 def updateCars(val, lotId):
     try:
         if val == 1:
-            response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carIn'.format(lotId))
-            logger.info('Car Entered')
+            carIn(lotId)
         else:
-            response = requests.put('https://livelotapi.herokuapp.com/lot/{}/carOut'.format(lotId))
-            logger.info('Car Exit')
-        
-        logger.info(response.json())
+            carOut(lotId)
     except Exception as e:
         logger.error(str(e))
 

@@ -64,7 +64,6 @@ class CarTracker:
             self.logger.error(str(e))
         self._m = (self._y2 - self._y1) / (self._x1 - self._x2)
         pointFile.close()
-        # 0 - box points, 1 - original position, 2 - new position, 3 - frame update check, 4 - timeout
         self._memory_buffer = []
         angle = abs(math.degrees(math.atan(self._m)))
         self._lineVertical = True
@@ -117,7 +116,7 @@ class CarTracker:
                 #already updated continue
                 if carObj.updated == True:
                     continue
-                prev_pos = carObj.bounding_box
+                prev_pos = carObj.getBoundingBox()
                 new_pos_center = calc_center(new_pos)
                 prev_pos_center = calc_center(prev_pos)
                 dist = math.hypot(new_pos_center[0] - prev_pos_center[0], new_pos_center[1] - prev_pos_center[1])
@@ -129,14 +128,11 @@ class CarTracker:
         #will need to figure out good threshold value for cars
         center = calc_center(bounding_box)
         new_pos_val = self.test_point(center[0], center[1])
-        self._memory_buffer[index].bounding_box = bounding_box
-        self._memory_buffer[index].frame_position = new_pos_val
-        self._memory_buffer[index].updated = True
-        self._memory_buffer[index].timeout_counter = 3
+        self._memory_buffer[index].updateObj(bounding_box, new_pos_val)
             
     def remove_from_buffer(self, index):
-        old_pos_val = self._memory_buffer[index].initial_position
-        new_pos_val = self._memory_buffer[index].frame_position
+        old_pos_val = self._memory_buffer[index].getInitialPos()
+        new_pos_val = self._memory_buffer[index].getFramePos()
         self._memory_buffer.remove(self._memory_buffer[index])
         if new_pos_val == old_pos_val or new_pos_val == 0:
             return
@@ -158,17 +154,16 @@ class CarTracker:
                 center = calc_center(car)
                 pos_val = self.test_point(center[0], center[1])
                 carObj = CarObject(car, pos_val)
-                temp_arr = [obj, pos_val, 0,  1, 3]
                 self._memory_buffer.append(carObj)
             else:
                 self.update_buffer(this_frame_cars)
         for i in range(len(self._memory_buffer) - 1, -1, -1):
-            if self._memory_buffer[i].updated == False and self._memory_buffer[i].timeout_counter == 0:
+            if self._memory_buffer[i].getUpdated() == False and self._memory_buffer[i].getCounter() == 0:
                 self.remove_from_buffer(i)
-            elif self._memory_buffer[i].updated == False:
-                self._memory_buffer[i].timeout_counter = self._memory_buffer[i].timeout_counter - 1
+            elif self._memory_buffer[i].getUpdated() == False:
+                self._memory_buffer[i].decrementCounter()
         for i in range(0, len(self._memory_buffer)):
-            self._memory_buffer[i].updated = False
+            self._memory_buffer[i].setUpdated(False)
 
     def find_object_in_frame(self, obj1, objs_in_frame):
         num_objs_in_frame = len(objs_in_frame)
@@ -184,7 +179,7 @@ class CarTracker:
             )
 
             # TODO there should probably be some sort of thresholding done here
-            if dist < closest_obj_dist and objs_in_frame[i].updated != True:
+            if dist < closest_obj_dist and objs_in_frame[i].getUpdated() != True:
                 closest_obj = obj2
                 closest_obj_dist = dist
                 index = i

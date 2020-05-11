@@ -6,14 +6,11 @@
 6. `sudo apt-get install dnsutils`
 6. Edit `/etc/rc.local` and add `sleep 30s` and `python /home/pi/livelot-tracking/pifind.py`
 7. Go to the top left dropdown > Preferences > Raspberry Pi Configuration > Interfaces and enable Camera and SSH.
-8. Visit `https://download.01.org/opencv/2020/openvinotoolkit/` and find the latest version of the OpenVino toolkin and download it I.E. `wget https://download.01.org/opencv/2020/openvinotoolkit/2020.1/l_openvino_toolkit_runtime_raspbian_p_2020.1.023.tgz`
-9. sudo mkdir -p /opt/intel/openvino
-10. `sudo tar -xf  l_openvino_toolkit_runtime_raspbian_p_<version>.tgz --strip 1 -C /opt/intel/openvino`
-11. `sudo apt install cmake`
-12. `source /opt/intel/openvino/bin/setupvars.sh`
-13. `echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc`
-14. `sudo usermod -a -G users "$(whoami)"`
-15. reboot the pi
-16. `sh /opt/intel/openvino/install_dependencies/install_NCS_udev_rules.sh`
+8. Set up the Coral TPU Runtime
+9. echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+10. curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+11. sudo apt-get update
+12. sudo apt-get install libedgetpu1-std
+13. pip3 install https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl
 
 

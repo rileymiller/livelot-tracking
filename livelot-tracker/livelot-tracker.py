@@ -33,7 +33,7 @@ from car_tracker import CarTracker
 from PiVideoStream import PiVideoStream
 
 # Detection threshold: Minimum confidance to tag as valid detection
-CONFIDANCE_THRESHOLD = 0.60 # 60% confidant
+CONFIDENCE_THRESHOLD = 0.60 # 60% confidant
 
 # Variable to store commandline arguments
 ARGS                 = None
@@ -126,6 +126,7 @@ def main():
     frame_count = 0
     
     vs = PiVideoStream(resolution=(image_width, image_height),framerate=60).start()
+    #Sleep to allow camera set up
     time.sleep(2.0)
     while True:    
         frame_count = frame_count + 1
@@ -135,14 +136,14 @@ def main():
         frameImg = img
         frameImg = cv2.resize(frameImg, (width,height))
         detection_start = time.time()
-        results = detect_objects(interpreter, frameImg, CONFIDANCE_THRESHOLD)
+        results = detect_objects(interpreter, frameImg, CONFIDENCE_THRESHOLD)
         if timing:
             print("Detection time (ms): ", 1000 * (time.time() - detection_start)) 
                 
         car_bboxs = []
         for obj in results:
             # 0 - person 2 - car 3 - motorcycle 5 - bus 7 - truck
-            if obj["class_id"] in [0,2,3,5,7] and obj["score"] > 0.5:
+            if obj["class_id"] in [0,2,3,5,7]:
                 x1 = int(obj["bounding_box"][1] * image_width)
                 y1 = int(obj["bounding_box"][0] * image_height)
                 x2 = int(obj["bounding_box"][3] * image_width)
@@ -166,13 +167,7 @@ def main():
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-                         description="Detect objects on a LIVE camera feed using \
-                         Intel® Movidius™ Neural Compute Stick 2." )
-
-    parser.add_argument( '-M', '--mean', type=float,
-                         nargs='+',
-                         default=[127.5, 127.5, 127.5],
-                         help="',' delimited floating point values for image mean." )
+                         description="Main runner for the LiveLot tracking software." )
 
     parser.add_argument( '-d', '--debug', type=bool,
                          nargs='?',

@@ -47,7 +47,7 @@ m = -1
 
 lineDrawn = False
 camera = PiCamera()
-camera.resolution = (1640,922)#(640,480)
+camera.resolution = (1640,922)
 rawCapture = PiRGBArray(camera, size=(1640,922))
 outFile = open("points.txt", "w")
 cv2.namedWindow('test')

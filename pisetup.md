@@ -4,7 +4,8 @@
 4. Setup the timezone, password, wifi,  and install the latest software.
 5. Clone the `livelot-tracking` repository into the home directory.
 6. `sudo apt-get install dnsutils`
-6. Edit `/etc/rc.local` and add `sleep 30s` and `python /home/pi/livelot-tracking/pifind.py`
+7. pip3 install "python-socketio[client]"
+6. Edit `/etc/rc.local` and add `sleep 30s` and `python3 /home/pi/livelot-tracking/pifind.py`
 7. Go to the top left dropdown > Preferences > Raspberry Pi Configuration > Interfaces and enable Camera and SSH.
 8. Visit `https://download.01.org/opencv/2020/openvinotoolkit/` and find the latest version of the OpenVino toolkin and download it I.E. `wget https://download.01.org/opencv/2020/openvinotoolkit/2020.1/l_openvino_toolkit_runtime_raspbian_p_2020.1.023.tgz`
 9. sudo mkdir -p /opt/intel/openvino

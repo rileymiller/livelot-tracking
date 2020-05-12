@@ -51,8 +51,8 @@ line_y1 = -1
 line_y2 = -1
 
 #Image Dimensions
-image_width = 1640#1280
-image_height = 922#720
+image_width = 1648#1280
+image_height = 928#720
 
 
 
@@ -94,7 +94,7 @@ def detect_objects(interpreter, image, threshold):
       results.append(result)
   return results
 
-def show_inference(obj_list, frame):
+def show_inference(obj_list, frame, record_bool):
     for obj in obj_list:
         (y1, x1) = obj[0][0]
         (y2, x2) = obj[0][1]
@@ -109,10 +109,13 @@ def show_inference(obj_list, frame):
                 thickness=4,
                 color=(255, 255, 0),
                 display_str=display_str )
-
+    if record_bool:
+        cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 5)
+        record_file.write(frame)
+        
     # If a display is available, show the image on which inference was performed
     if debug == True and 'DISPLAY' in os.environ:
-        cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 10)
+        cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 5)
         cv2.imshow( 'NCS live inference', frame )
 
 def main():
@@ -149,12 +152,16 @@ def main():
                 y2 = int(obj["bounding_box"][2] * image_height)
                 bbox_obj = [[(y1, x1),(y2, x2)], obj["class_id"], obj["score"]]
                 car_bboxs.append(bbox_obj)
-
-        if(debug):
-            show_inference(car_bboxs, displayImg)
+        
+        if record != None:
+            show_inference(car_bboxs, displayImg, True)
+        
+        if debug:
+            show_inference(car_bboxs, displayImg, False)
 
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             vs.stop()
+            record_file.release()
             break
         car_tracker.process_frame(car_bboxs)
         elapsed_ms = (time.time() - start_time) * 1000
@@ -169,9 +176,10 @@ if __name__ == '__main__':
                          description="Detect objects on a LIVE camera feed using \
                          Intel® Movidius™ Neural Compute Stick 2." )
 
-    parser.add_argument( '-M', '--mean', type=float,
-                         nargs='+',
-                         default=[127.5, 127.5, 127.5],
+    parser.add_argument( '-r', '--record', type=str,
+                         nargs='?',
+                         const="livelot_recording",
+                         default=None,
                          help="',' delimited floating point values for image mean." )
 
     parser.add_argument( '-d', '--debug', type=bool,
@@ -187,6 +195,10 @@ if __name__ == '__main__':
     ARGS = parser.parse_args()
     timing = ARGS.timing 
     debug = ARGS.debug
+    record = ARGS.record
+
+    record_file = cv2.VideoWriter('./recordings/{}.avi'.format(record),cv2.VideoWriter_fourcc('M','J','P','G'), 30, (image_width,image_height))
+
 
     try:
         pointFile = open("points.txt", "r")

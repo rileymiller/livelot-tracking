@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 import os
+
 #Set up logger
 now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
 logger = logging.getLogger('livelot-tracker')
@@ -20,8 +21,6 @@ import time
 import cv2
 import numpy as np
 import argparse
-from picamera import PiCamera
-from picamera.array import PiRGBArray
 
 from PIL import Image
 from tflite_runtime.interpreter import load_delegate
@@ -38,9 +37,6 @@ CONFIDENCE_THRESHOLD = 0.60 # 60% confidant
 # Variable to store commandline arguments
 ARGS                 = None
 
-# OpenCV object for video capture
-camera               = None
-
 # Initialize CarTracker
 car_tracker = CarTracker()
 
@@ -51,8 +47,8 @@ line_y1 = -1
 line_y2 = -1
 
 #Image Dimensions
-image_width = 1640#1280
-image_height = 922#720
+image_width = 1640
+image_height = 922
 
 
 

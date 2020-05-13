@@ -134,3 +134,5 @@ points.txt
 #Swap files
 *.swp
 
+#Recordings
+*.avi

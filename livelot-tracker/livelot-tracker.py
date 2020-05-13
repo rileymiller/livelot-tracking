@@ -169,8 +169,7 @@ def main():
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(
-                         description="Main runner for the LiveLot tracking software." )
+    parser = argparse.ArgumentParser(description="Main runner for the LiveLot tracking software." )
 
     parser.add_argument( '-r', '--record', type=str,
                          nargs='?',

@@ -48,9 +48,11 @@ To fix the issues in the previous appraoch I added a 3 frame timer to address is
 
 For issue #2 I recreated the method to match cars with memory buffer objects. Each detection originally just got matched to the closest object in the memory buffer sequentially. Now it iterates over all detections and finds the minimum distance between car and memory buffer object each iteration. This makes stationary cars get matched with itself.
 
+### Multithreaded PiCamera Module
+
+To increase the framerate the PiVideoStream file was made so that the camera constantly polls for new images on a thread seperate from the main thread. Then when an image is needed the main thread can get the most recent image from the image thread.
+
 ## Current Issues
-1. The framerate is around 3-5 FPS which is just too slow for a fast moving car to be reliably detected.
+1. There is no gurantee that cars are always matched with their own memory buffer object so there might be edge cases where it fails. In concept it shouldn't matter since the net result of cars coming in/out and being matched should be the true count.
 
-2. There is no gurantee that cars are always matched with their own memory buffer object so there might be edge cases where it fails. In concept it shouldn't matter since the net result of cars coming in/out and being matched should be the true count.
-
-3. Depending on the camera angle, occlusions can't be avoided and therefore it can mess up the tracking and count.
+2. Depending on the camera angle, occlusions can't be avoided and therefore it's possible that the tracking can mess up.

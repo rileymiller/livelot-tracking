@@ -3,11 +3,12 @@ import re
 import uuid
 import configparser
 import subprocess
-
 sio = socketio.Client()
+
 
 sio.connect('https://livelotapi-rm-ip-table-q3tgigl.herokuapp.com/')
 #sio.connect('http://localhost:3000')
+
 
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read("/home/pi/livelot-tracking/livelot-tracker/LotConfig.ini")

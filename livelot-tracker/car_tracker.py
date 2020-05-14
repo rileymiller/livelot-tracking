@@ -140,12 +140,13 @@ class CarTracker:
     def process_frame(self, output_array):
         # Get the location of every object in this frame
         this_frame_cars =[]
+        
         for obj in output_array:
             this_frame_cars.append(obj[0])
-                   
-        for car in output_array:
-            car = car[0]
-            closest_obj, dist, index = self.find_object_in_frame(car, self._memory_buffer)
+
+        for obj in output_array:
+            obj = obj[0]
+            closest_obj, dist, index = self.find_object_in_frame(obj, self._memory_buffer)
             if closest_obj == None:
                 center = calc_center(car)
                 pos_val = self.test_point(center[0], center[1])

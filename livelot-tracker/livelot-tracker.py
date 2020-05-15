@@ -113,7 +113,7 @@ def show_inference(obj_list, frame, record_bool):
     # If a display is available, show the image on which inference was performed
     if debug == True and 'DISPLAY' in os.environ:
         cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 5)
-        cv2.imshow( 'NCS live inference', frame )
+        cv2.imshow( 'Live inference', frame )
 
 def main():
     labels = load_labels('./coco_labels.txt')

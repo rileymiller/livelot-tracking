@@ -4,7 +4,8 @@
 4. Setup the timezone, password, wifi,  and install the latest software.
 5. Clone the `livelot-tracking` repository into the home directory.
 6. `sudo apt-get install dnsutils`
-6. Edit `/etc/rc.local` and add `sleep 30s` and `python /home/pi/livelot-tracking/pifind.py`
+7. pip3 install "python-socketio[client]"
+6. Edit `/etc/rc.local` and add `sleep 30s` and `python3 /home/pi/livelot-tracking/pifind.py`
 7. Go to the top left dropdown > Preferences > Raspberry Pi Configuration > Interfaces and enable Camera and SSH.
 8. Set up the Coral TPU Runtime
 9. echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list

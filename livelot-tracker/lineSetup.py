@@ -47,8 +47,10 @@ m = -1
 
 lineDrawn = False
 camera = PiCamera()
+
 camera.resolution = (1648,928)
 rawCapture = PiRGBArray(camera, size=(1648,928))
+
 outFile = open("points.txt", "w")
 cv2.namedWindow('test')
 cv2.setMouseCallback('test',draw_line) 

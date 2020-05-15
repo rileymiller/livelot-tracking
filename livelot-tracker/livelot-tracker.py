@@ -52,6 +52,7 @@ image_height = 928
 
 
 
+
 def load_labels(path):
   with open(path, 'r') as f:
     return {i: line.strip() for i, line in enumerate(f.readlines())}
@@ -108,7 +109,7 @@ def show_inference(obj_list, frame, record_bool):
     if record_bool:
         cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 5)
         record_file.write(frame)
-        
+
     # If a display is available, show the image on which inference was performed
     if debug == True and 'DISPLAY' in os.environ:
         cv2.line(frame, (line_x1, line_y1), (line_x2, line_y2), (0,255,0), 5)
@@ -160,6 +161,7 @@ def main():
             vs.stop()
             record_file.release()
             break
+            
         car_tracker.process_frame(car_bboxs)
         elapsed_ms = (time.time() - start_time) * 1000
 

@@ -4,7 +4,7 @@ logger = logging.getLogger('livelot-tracker.car_tracker')
 import configparser
 import math
 import json
-from request_interface import carIn, carOut
+from utils.request_interface import carIn, carOut
 
 import _thread
 
@@ -41,7 +41,7 @@ class CarTracker:
         self.logger = logging.getLogger('livelot-tracker.car_tracker.CarTracker')
         config = configparser.ConfigParser()
         try:
-            config.read("./LotConfig.ini")
+            config.read("./config/LotConfig.ini")
             self._lotId = config.get('Lot', 'lotId')
             self._flipBoundary = config.getboolean('Lot','flipBoundary')
             self.logger.info("Config file read.")
@@ -51,7 +51,7 @@ class CarTracker:
         self._num_cars_in = 0
         self._num_cars_out = 0
         try:
-            pointFile = open("points.txt", "r")
+            pointFile = open("./config/points.txt", "r")
             self._x1 = int(pointFile.readline())
             self._y1 = int(pointFile.readline())
             self._x2 = int(pointFile.readline())

@@ -29,7 +29,7 @@ import io
 
 from utils import visualize_output
 from car_tracker import CarTracker
-from PiVideoStream import PiVideoStream
+from utils.PiVideoStream import PiVideoStream
 
 # Detection threshold: Minimum confidance to tag as valid detection
 CONFIDENCE_THRESHOLD = 0.60 # 60% confidant
@@ -116,8 +116,8 @@ def show_inference(obj_list, frame, record_bool):
         cv2.imshow( 'Live inference', frame )
 
 def main():
-    labels = load_labels('./coco_labels.txt')
-    interpreter = Interpreter('./ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite',
+    labels = load_labels('./model/coco_labels.txt')
+    interpreter = Interpreter('./model/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite',
         experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
     interpreter.allocate_tensors()
     _, height, width, _ = interpreter.get_input_details()[0]['shape']
@@ -163,7 +163,7 @@ def main():
 
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             vs.stop()
-            if record_file:
+            if record_file != None:
                 record_file.release()
             break
             
@@ -203,12 +203,13 @@ if __name__ == '__main__':
     debug = ARGS.debug
     record = ARGS.record
     people = ARGS.people
+    
     if record != None:
         record_file = cv2.VideoWriter('./recordings/{}.avi'.format(record),cv2.VideoWriter_fourcc('M','J','P','G'), 30, (image_width,image_height))
 
 
     try:
-        pointFile = open("points.txt", "r")
+        pointFile = open("./config/points.txt", "r")
     except Exception as e:
         logger.error(str(e))
     line_x1 = int(pointFile.readline())

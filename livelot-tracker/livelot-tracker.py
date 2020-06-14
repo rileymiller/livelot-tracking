@@ -142,8 +142,12 @@ def main():
                 
         car_bboxs = []
         for obj in results:
+            if people:
+                track_list = [0]
+            else:
+                track_list = [2,3,5,7]
             # 0 - person 2 - car 3 - motorcycle 5 - bus 7 - truck
-            if obj["class_id"] in [0,2,3,5,7]:
+            if obj["class_id"] in track_list:
                 x1 = int(obj["bounding_box"][1] * image_width)
                 y1 = int(obj["bounding_box"][0] * image_height)
                 x2 = int(obj["bounding_box"][3] * image_width)
@@ -159,7 +163,8 @@ def main():
 
         if( cv2.waitKey( 5 ) & 0xFF == ord( 'q' ) ):
             vs.stop()
-            record_file.release()
+            if record_file:
+                record_file.release()
             break
             
         car_tracker.process_frame(car_bboxs)
@@ -187,12 +192,17 @@ if __name__ == '__main__':
                          nargs='?',
                          const=True, default=False,
                          help="Prints out timing information." )
+    parser.add_argument( '-p', '--people', type=bool,
+                         nargs='?',
+                         const=True, default=False,
+                         help="Used for testing using people instead of cars." )
     
 
     ARGS = parser.parse_args()
     timing = ARGS.timing 
     debug = ARGS.debug
     record = ARGS.record
+    people = ARGS.people
     if record != None:
         record_file = cv2.VideoWriter('./recordings/{}.avi'.format(record),cv2.VideoWriter_fourcc('M','J','P','G'), 30, (image_width,image_height))
 

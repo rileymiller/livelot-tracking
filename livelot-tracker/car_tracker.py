@@ -144,13 +144,13 @@ class CarTracker:
         for obj in output_array:
             this_frame_cars.append(obj[0])
 
-        for obj in output_array:
-            obj = obj[0]
-            closest_obj, dist, index = self.find_object_in_frame(obj, self._memory_buffer)
+        for car in output_array:
+            car_bbox = car[0]
+            closest_obj, dist, index = self.find_object_in_frame(car_bbox, self._memory_buffer)
             if closest_obj == None:
-                center = calc_center(car)
+                center = calc_center(car_bbox)
                 pos_val = self.test_point(center[0], center[1])
-                carObj = CarObject(car, pos_val)
+                carObj = CarObject(car_bbox, pos_val)
                 self._memory_buffer.append(carObj)
             else:
                 self.update_buffer(this_frame_cars)

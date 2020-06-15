@@ -47,7 +47,7 @@ line_y1 = -1
 line_y2 = -1
 
 #Image Dimensions
-image_width = 1648
+image_width = 1664
 image_height = 928
 
 

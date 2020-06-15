@@ -12,31 +12,8 @@ def draw_line(event,x,y,flags,param):
             x2 = x
             y2 = y
         if x1 != -1 and x2 != -1:
-            cv2.line(img, (x1, y1), (x2, y2), (0,255,0), 10)
-            print("LINE")
+            cv2.line(img, (x1, y1), (x2, y2), (0,255,0), 5)
         mouseX,mouseY = x,y
-
-def testPoint(event, x, y, flags, param):
-    global x1, x2, y1, y2, m
-    if event == cv2.EVENT_LBUTTONUP:
-        angle = abs(math.degrees(math.atan(m)))
-        if angle < 45:
-            if x <= max(x2,x1) and x >= min(x1,x2):
-                if y > (m * (x - x1) + y1):
-                    print("below vert")
-                else:
-                    print("above vert")
-            else:
-                print("not in col vert")
-        else:
-            print("y",y,"y1",y1,"y2",y2)
-            if y <= max(y2,y1) and y >= min(y1,y2):
-                if x > ((y - y1 + m * x1) / m):
-                    print("below horiz")
-                else:
-                    print("above horiz")
-            else:
-                print("not in col horiz")
 
 
 x1 = -1 
@@ -45,15 +22,17 @@ x2 = -1
 y2 = -1
 m = -1
 
+textDisplayed = False
 lineDrawn = False
 camera = PiCamera()
 
-camera.resolution = (1648,928)
-rawCapture = PiRGBArray(camera, size=(1648,928))
+camera.resolution = (1664,928)
+rawCapture = PiRGBArray(camera, size=(1664,928))
 
 outFile = open("points.txt", "w")
-cv2.namedWindow('test')
-cv2.setMouseCallback('test',draw_line) 
+cv2.namedWindow('Line Setup')
+cv2.setMouseCallback('Line Setup',draw_line) 
+print("Click two points on the image to draw a line or \'q\' to quit.")
 for frame in camera.capture_continuous(rawCapture, format="bgr"):  
     img = frame.array
     if x1 != -1 and x2 != -1:
@@ -61,20 +40,26 @@ for frame in camera.capture_continuous(rawCapture, format="bgr"):
         cv2.line(img, (x1, y1), (x2, y2), (0,255,0), 10)
         if lineDrawn == False:
             lineDrawn = True
-            outFile.write(str(x1)+ '\n')
-            outFile.write(str(y1)+ '\n')
-            outFile.write(str(x2)+ '\n') 
-            outFile.write(str(y2)+ '\n')
-            outFile.close()
-            cv2.setMouseCallback('test', testPoint)
-    cv2.imshow("test", img)
-    k = cv2.waitKey(20) & 0xFF
-    if k == 27:
-        break
-    elif k == ord('a'):
-        print(mouseX,mouseY)
-        print(x1, y1)
-        print(x2, y2)
+        else:
+            if textDisplayed == False:
+                print("Press \'q\' to exit or \'r\' to redraw line.")
+                textDisplayed = True
+            k = cv2.waitKey(25) & 0xFF
+            if k == 113:
+                outFile.write(str(x1)+ '\n')
+                outFile.write(str(y1)+ '\n')
+                outFile.write(str(x2)+ '\n') 
+                outFile.write(str(y2)+ '\n')
+                outFile.close()
+                exit()
+            elif k == 114:
+                x1 = x2 = y2 = y2 = -1
+                textDisplayed = False
+                print("Redraw line.")
+    cv2.imshow("Line Setup", img)
+    k = cv2.waitKey(25) & 0xFF
+    if k == 113:
+        exit()
     rawCapture.truncate()
     rawCapture.seek(0)
 

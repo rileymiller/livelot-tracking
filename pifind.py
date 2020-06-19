@@ -6,7 +6,7 @@ import subprocess
 sio = socketio.Client()
 
 
-sio.connect('https://livelotapi-rm-ip-table-q3tgigl.herokuapp.com/')
+sio.connect('https://livelotapi.herokuapp.com/')
 #sio.connect('http://localhost:3000')
 
 

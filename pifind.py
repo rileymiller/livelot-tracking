@@ -6,19 +6,19 @@ import subprocess
 sio = socketio.Client()
 
 
-sio.connect('https://livelotapi-rm-ip-table-q3tgigl.herokuapp.com/')
+sio.connect('https://livelotapi.herokuapp.com/')
 #sio.connect('http://localhost:3000')
 
 
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
-config.read("/home/pi/livelot-tracking/livelot-tracker/LotConfig.ini")
+config.read("/home/pi/livelot-tracking/livelot-tracker/config/LotConfig.ini")
 
 cameraID = config.get('Lot', 'cameraID')
 
 if cameraID == "-1":
     cameraID = str(uuid.uuid4())
     config.set('Lot', 'cameraID', cameraID)
-    f = open('/home/pi/livelot-tracking/livelot-tracker/LotConfig.ini', 'w')
+    f = open('/home/pi/livelot-tracking/livelot-tracker/config/LotConfig.ini', 'w')
     config.write(f)
     f.close()
 

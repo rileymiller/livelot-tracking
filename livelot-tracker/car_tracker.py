@@ -38,6 +38,12 @@ def get_width_height(box_points):
 
 class CarTracker:
     def __init__(self):
+        self._y1 = -1
+        self._y2 = -1
+        self._x1 = -1 
+        self._x2 = -1
+        self._m = -1
+        pointFile = None
         self.logger = logging.getLogger('livelot-tracker.car_tracker.CarTracker')
         config = configparser.ConfigParser()
         try:
@@ -58,8 +64,10 @@ class CarTracker:
             self._y2 = int(pointFile.readline())
         except Exception as e:
             self.logger.error(str(e))
-        self._m = (self._y2 - self._y1) / (self._x1 - self._x2)
-        pointFile.close()
+        if self._x1 != -1 or self._x2 != -1 or self._y1 != -1 or self._y2 != -1:
+            self._m = (self._y2 - self._y1) / (self._x1 - self._x2)
+        if pointFile is not None:
+            pointFile.close()
         self._memory_buffer = []
         angle = abs(math.degrees(math.atan(self._m)))
         self._lineVertical = True

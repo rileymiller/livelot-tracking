@@ -6,15 +6,7 @@ from datetime import datetime
 import os
 
 #Set up logger
-now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
 logger = logging.getLogger('livelot-tracker')
-logging.basicConfig(level=logging.INFO)
-if not os.path.exists('./logs'):
-    os.makedirs('./logs')
-fileHandler = logging.FileHandler('logs/tracker' + now)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fileHandler.setFormatter(formatter)
-logger.addHandler(fileHandler)
 
 import os
 import time
@@ -50,8 +42,11 @@ line_y2 = -1
 image_width = 1664
 image_height = 928
 
-
-
+timing = None 
+debug = None
+record = None
+people = None
+record_file = None
 
 def load_labels(path):
   with open(path, 'r') as f:
@@ -116,6 +111,8 @@ def show_inference(obj_list, frame, record_bool):
         cv2.imshow( 'Live inference', frame )
 
 def main():
+    if line_x1==-1 and line_x2==-1 and line_y1==-1 and line_y2==-1:
+        return
     labels = load_labels('./model/coco_labels.txt')
     interpreter = Interpreter('./model/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite',
         experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
@@ -125,9 +122,9 @@ def main():
     start_time = time.time()
     frame_count = 0
     
-    vs = PiVideoStream(resolution=(image_width, image_height),framerate=60).start()
+    vs = PiVideoStream(resolution=(image_width, image_height),framerate=30).start()
     #Sleep to allow camera set up
-    time.sleep(2.0)
+    time.sleep(5)
     while True:    
         frame_count = frame_count + 1
         frame_start_time = time.time()
@@ -157,7 +154,7 @@ def main():
         
         if record != None:
             show_inference(car_bboxs, displayImg, True)
-        
+        print(debug)
         if debug:
             show_inference(car_bboxs, displayImg, False)
 
@@ -174,31 +171,8 @@ def main():
             print("FPS: ", frame_count / (time.time() - start_time)) # FPS = 1 / time to process loop
             print("Total time (ms)", 1000 * (time.time() - frame_start_time))
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description="Main runner for the LiveLot tracking software." )
-
-    parser.add_argument( '-r', '--record', type=str,
-                         nargs='?',
-                         const="livelot_recording",
-                         default=None,
-                         help="',' delimited floating point values for image mean." )
-
-    parser.add_argument( '-d', '--debug', type=bool,
-                         nargs='?',
-                         const=True, default=False,
-                         help="Shows the image feed with bounding boxes and boundary line." )
-    parser.add_argument( '-t', '--timing', type=bool,
-                         nargs='?',
-                         const=True, default=False,
-                         help="Prints out timing information." )
-    parser.add_argument( '-p', '--people', type=bool,
-                         nargs='?',
-                         const=True, default=False,
-                         help="Used for testing using people instead of cars." )
-    
-
-    ARGS = parser.parse_args()
+def run(ARGS):
+    global timing,debug,record,people,line_x1,line_y1,line_x2,line_y2
     timing = ARGS.timing 
     debug = ARGS.debug
     record = ARGS.record
@@ -210,15 +184,14 @@ if __name__ == '__main__':
 
     try:
         pointFile = open("./config/points.txt", "r")
+        line_x1 = int(pointFile.readline())
+        line_y1 = int(pointFile.readline())
+        line_x2 = int(pointFile.readline())
+        line_y2 = int(pointFile.readline())
+        pointFile.close()
+        logger.info('Boundary line point data has been loaded')
     except Exception as e:
         logger.error(str(e))
-    line_x1 = int(pointFile.readline())
-    line_y1 = int(pointFile.readline())
-    line_x2 = int(pointFile.readline())
-    line_y2 = int(pointFile.readline())
-    pointFile.close()
-    logger.info('Boundary line point data has been loaded')
-    main()
     try:
         main()
     except Exception as e:

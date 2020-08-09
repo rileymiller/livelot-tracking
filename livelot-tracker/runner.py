@@ -2,24 +2,10 @@
 
 import argparse
 import livelot_tracker
-import logging
 import config.lineSetup
 import argparse
-from datetime import datetime
 import os
 import time
-
-#Set up logger
-now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
-logger = logging.getLogger('livelot-tracker')
-logging.basicConfig(level=logging.INFO)
-if not os.path.exists('./logs'):
-    os.makedirs('./logs')
-fileHandler = logging.FileHandler('logs/tracker' + now)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fileHandler.setFormatter(formatter)
-logger.addHandler(fileHandler)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Main runner for the LiveLot tracking software." )

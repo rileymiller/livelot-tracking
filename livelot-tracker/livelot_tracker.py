@@ -6,7 +6,16 @@ from datetime import datetime
 import os
 
 #Set up logger
-logger = logging.getLogger('livelot-tracker')
+#Set up logger
+now = datetime.now().strftime("_%d-%m-%Y_%H:%M:%S.log")
+logger = logging.getLogger('livelot_tracker')
+logging.basicConfig(level=logging.INFO)
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+fileHandler = logging.FileHandler('logs/tracker' + now)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fileHandler.setFormatter(formatter)
+logger.addHandler(fileHandler)
 
 import os
 import time
@@ -30,7 +39,7 @@ CONFIDENCE_THRESHOLD = 0.60 # 60% confidant
 ARGS                 = None
 
 # Initialize CarTracker
-car_tracker = CarTracker()
+car_tracker = None
 
 #Boundary line
 line_x1 = -1
@@ -154,7 +163,6 @@ def main():
         
         if record != None:
             show_inference(car_bboxs, displayImg, True)
-        print(debug)
         if debug:
             show_inference(car_bboxs, displayImg, False)
 
@@ -172,7 +180,7 @@ def main():
             print("Total time (ms)", 1000 * (time.time() - frame_start_time))
 
 def run(ARGS):
-    global timing,debug,record,people,line_x1,line_y1,line_x2,line_y2
+    global timing,debug,record,people,line_x1,line_y1,line_x2,line_y2,car_tracker
     timing = ARGS.timing 
     debug = ARGS.debug
     record = ARGS.record
@@ -193,6 +201,7 @@ def run(ARGS):
     except Exception as e:
         logger.error(str(e))
     try:
+        car_tracker = CarTracker() 
         main()
     except Exception as e:
         logger.error(str(e))

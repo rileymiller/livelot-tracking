@@ -44,7 +44,7 @@ class CarTracker:
         self._x2 = -1
         self._m = -1
         pointFile = None
-        self.logger = logging.getLogger('livelot-tracker.car_tracker.CarTracker')
+        self.logger = logging.getLogger('livelot_tracker.car_tracker.CarTracker')
         config = configparser.ConfigParser()
         try:
             config.read("./config/LotConfig.ini")
